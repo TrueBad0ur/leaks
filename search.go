@@ -6,35 +6,45 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
+	"sync"
 )
 
-func grep(data string) string {
-	start := time.Now()
-	result := []string{}
-	var path string = "./dbs/eksmo.csv"
+var wg sync.WaitGroup
 
-	f, err := ioutil.ReadFile(path)
+func readFile(filename string, cChannel chan string, data string) {
+	defer wg.Done()
+	//fmt.Println("Filename: ", filename)
+	body, err := ioutil.ReadFile(filename)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to read file: %v", err)
 	}
-
-	lines := strings.Split(string(f), "\n")
-
+	lines := strings.Split(string(body), "\n")
 	re := regexp.MustCompile(data)
-
 	for _, line := range lines {
 		if re.MatchString(line) {
-			result = append(result, line)
+			cChannel <- line
 		}
 	}
+}
 
-	//fmt.Println(result)
-	if len(result) > 0 {
-		elapsed := time.Since(start)
-		fmt.Printf("Time took %s\n", elapsed)
-		return strings.Join(result, "</br>")
-	} else {
-		return "Not found"
+func grep(data string) string {
+	resultData := []string{}
+	cChannel := make(chan string)
+	filesCount := 5
+
+	for i := 0; i < filesCount; i++ {
+		wg.Add(1)
+		go readFile(fmt.Sprintf("./tests/file%d", i), cChannel, data)
 	}
+
+	go func() {
+		wg.Wait()
+		close(cChannel)
+	}()
+
+	for match := range cChannel {
+		resultData = append(resultData, match)
+		fmt.Println(match)
+	}
+	return strings.Join(resultData, "</br>")
 }

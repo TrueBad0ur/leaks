@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"text/template"
 )
 
 func main() {
-	http.HandleFunc("/", RootHandler)
-	http.HandleFunc("/submit", SubmitHandler)
+	http.HandleFunc("/", SubmitHandler)
 
 	// log.Fatal(http.ListenAndServe("localhost:8000", nil))
 
@@ -38,6 +36,7 @@ func SubmitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
 func RootHandler(w http.ResponseWriter, r *http.Request) {
 	// r.ParseForm()
 
@@ -51,3 +50,4 @@ func RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintf(w, "Hello astaxie!")
 }
+*/

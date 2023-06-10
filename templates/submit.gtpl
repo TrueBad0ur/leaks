@@ -3,7 +3,7 @@
     <title></title>
     </head>
     <body>
-        <form action="/submit" method="post">
+        <form action="/" method="post">
             Your data: <input type="text" name="data">
             <input type="submit" value="submit">
         </form>

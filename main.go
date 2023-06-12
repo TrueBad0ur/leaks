@@ -41,6 +41,7 @@ func listFiles() []string {
 	var filesArray = []string{}
 
 	files, err := ioutil.ReadDir("./dbs/")
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,17 +50,23 @@ func listFiles() []string {
 		filesArray = append(filesArray, file.Name())
 	}
 
+	// In this folder we have .gitkeep, which will always be first in the list
+	filesArray = filesArray[1:]
+
 	return filesArray
 }
 
 func grep(data string, msgType int, conn *websocket.Conn) {
 	var dbNames = listFiles()
-	// resultData := []string{}
+	for i := 0; i < len(dbNames); i++ {
+		dbNames[i] = "./dbs/" + dbNames[i]
+	}
+
 	cChannel := make(chan string)
 
 	for _, dbName := range dbNames {
 		wg.Add(1)
-		go findInFile("./dbs/"+dbName, cChannel, data)
+		go findInFile(dbName, cChannel, data)
 	}
 
 	go func() {
@@ -69,17 +76,13 @@ func grep(data string, msgType int, conn *websocket.Conn) {
 
 	for match := range cChannel {
 		conn.WriteMessage(msgType, []byte(match))
-		// resultData = append(resultData, match)
-		fmt.Println(match)
 	}
-	// return strings.Join(resultData, "</br></br>")
 }
 
 func handleEcho(w http.ResponseWriter, r *http.Request) {
 	conn, _ := upgrader.Upgrade(w, r, nil)
 
 	for {
-		// Read message from browser
 		msgType, msg, err := conn.ReadMessage()
 		if err != nil {
 			return
@@ -99,8 +102,6 @@ func handleEcho(w http.ResponseWriter, r *http.Request) {
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./templates/submit.html")
-
-	// outputText := map[string]string{"outputText": grep(r.Form.Get("data"))}
 }
 
 func main() {

@@ -1,3 +1,5 @@
-- [X] Динамическое возвращение данных на страницу - как только что-то нашлось, возвращаться на страницу и добавлять новые данные
-- [ ] Читать файлы по чанкам
-- [X] Can't find new data on same page once more
+- [X] Create web socket
+- [X] Read files in chanks
+- [X] My return bug in endless websocket loop
+- [X] If found string splitted in two chunks what to do?
+- [X] If I found string in chunk, but it is not at the beginning of the chunk, should I split("\n")

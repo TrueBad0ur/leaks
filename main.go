@@ -1,12 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -22,17 +23,20 @@ var wg sync.WaitGroup
 func findInFile(filename string, cChannel chan string, data string) {
 	defer wg.Done()
 
-	body, err := ioutil.ReadFile(filename)
+	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatalf("unable to read file: %v", err)
+		fmt.Println("cannot able to read the file", err)
+		return
 	}
+	defer f.Close()
 
-	lines := strings.Split(string(body), "\n")
+	scanner := bufio.NewScanner(f)
 	re := regexp.MustCompile(data)
 
-	for _, line := range lines {
-		if re.MatchString(line) {
-			cChannel <- line
+	for i := 1; scanner.Scan(); i++ {
+		if re.MatchString(scanner.Text()) {
+			cChannel <- scanner.Text()
+			//fmt.Println(scanner.Text())
 		}
 	}
 }
@@ -52,6 +56,7 @@ func listFiles() []string {
 
 	// In this folder we have .gitkeep, which will always be first in the list
 	filesArray = filesArray[1:]
+	fmt.Println(filesArray)
 
 	return filesArray
 }
@@ -80,7 +85,10 @@ func grep(data string, msgType int, conn *websocket.Conn) {
 }
 
 func handleEcho(w http.ResponseWriter, r *http.Request) {
-	conn, _ := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
 
 	for {
 		msgType, msg, err := conn.ReadMessage()
@@ -88,15 +96,12 @@ func handleEcho(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Print the message to the console
 		fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
 		conn.WriteMessage(msgType, []byte("Search started!"))
 		grep(string(msg), msgType, conn)
 
-		// Write message back to browser
 		conn.WriteMessage(msgType, []byte("Search ended"))
 		fmt.Println("----------------------------------------------------------------")
-		// return
 	}
 }
 

@@ -96,7 +96,7 @@ func handleEcho(w http.ResponseWriter, r *http.Request) {
 		// Write message back to browser
 		conn.WriteMessage(msgType, []byte("Search ended"))
 		fmt.Println("----------------------------------------------------------------")
-		return
+		// return
 	}
 }
 

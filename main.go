@@ -31,7 +31,7 @@ func findInFile(filename string, cChannel chan string, data string) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	re := regexp.MustCompile(data)
+	re := regexp.MustCompile("(?i)" + data)
 
 	for i := 1; scanner.Scan(); i++ {
 		if re.MatchString(scanner.Text()) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"runtime"
 	"bufio"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +22,7 @@ var upgrader = websocket.Upgrader{
 var wg sync.WaitGroup
 
 func findInFile(filename string, cChannel chan string, data string) {
+	defer fmt.Printf("DONE DB: %s\n", filename)
 	defer wg.Done()
 
 	f, err := os.Open(filename)
@@ -110,6 +112,8 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	
 	http.HandleFunc("/", handleRoot)
 	http.HandleFunc("/echo", handleEcho)
 
@@ -118,4 +122,6 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+
+	fmt.Println("Listening on :8080")
 }
